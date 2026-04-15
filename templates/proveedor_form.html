@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if proveedor else 'Nuevo' }} Proveedor{% endblock %}
+{% block topbar_title %}{{ 'Editar' if proveedor else 'Nuevo' }} Proveedor{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>{{ 'Editar proveedor' if proveedor else 'Nuevo proveedor' }}</h1>
+  <a href="{{ url_for('proveedores') }}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="card" style="max-width:560px;">
+  <div class="card-body">
+    <form method="post">
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" name="nombre" required value="{{ proveedor.nombre if proveedor else '' }}">
+      </div>
+      <div class="form-group">
+        <label>Contacto</label>
+        <input type="text" name="contacto" value="{{ proveedor.contacto if proveedor else '' }}">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" name="telefono" value="{{ proveedor.telefono if proveedor else '' }}">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" value="{{ proveedor.email if proveedor else '' }}">
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+        <a href="{{ url_for('proveedores') }}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          {{ 'Actualizar' if proveedor else 'Crear proveedor' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

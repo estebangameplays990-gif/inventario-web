@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Proveedores — Inventario{% endblock %}
+{% block topbar_title %}Proveedores{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Proveedores</h1>
+  <a href="{{ url_for('proveedor_nuevo') }}" class="btn btn-primary">+ Nuevo proveedor</a>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Nombre</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Productos</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for p in proveedores %}
+        <tr>
+          <td style="font-weight:500">{{ p.nombre }}</td>
+          <td>{{ p.contacto or '—' }}</td>
+          <td class="text-mono" style="font-size:.83rem">{{ p.telefono or '—' }}</td>
+          <td style="font-size:.83rem">{{ p.email or '—' }}</td>
+          <td><span class="badge badge-gray">{{ p.productos|length }}</span></td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-end;">
+              <a href="{{ url_for('proveedor_editar', pid=p.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+              <form method="post" action="{{ url_for('proveedor_eliminar', pid=p.id) }}"
+                    onsubmit="return confirm('¿Eliminar proveedor {{ p.nombre }}?')">
+                <button class="btn btn-danger btn-sm" type="submit">✕</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not proveedores %}
+          <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Sin proveedores.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

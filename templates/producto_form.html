@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if producto else 'Nuevo' }} Producto — Inventario{% endblock %}
+{% block topbar_title %}{{ 'Editar' if producto else 'Nuevo' }} Producto{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>{{ 'Editar producto' if producto else 'Nuevo producto' }}</h1>
+  <a href="{{ url_for('productos') }}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="card" style="max-width:680px;">
+  <div class="card-body">
+    <form method="post">
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" name="nombre" required value="{{ producto.nombre if producto else '' }}">
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea name="descripcion">{{ producto.descripcion if producto else '' }}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Categoría</label>
+          <select name="categoria_id">
+            <option value="">— Sin categoría —</option>
+            {% for c in categorias %}
+              <option value="{{ c.id }}"
+                {% if producto and producto.categoria_id == c.id %}selected{% endif %}>
+                {{ c.nombre }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Proveedor</label>
+          <select name="proveedor_id">
+            <option value="">— Sin proveedor —</option>
+            {% for p in proveedores %}
+              <option value="{{ p.id }}"
+                {% if producto and producto.proveedor_id == p.id %}selected{% endif %}>
+                {{ p.nombre }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Precio (COP) *</label>
+          <input type="number" name="precio" step="100" required
+                 value="{{ producto.precio if producto else '' }}">
+        </div>
+        {% if not producto %}
+        <div class="form-group">
+          <label>Cantidad inicial</label>
+          <input type="number" name="cantidad" min="0" value="0">
+        </div>
+        {% endif %}
+        <div class="form-group">
+          <label>Stock mínimo</label>
+          <input type="number" name="stock_minimo" min="0"
+                 value="{{ producto.stock_minimo if producto else 5 }}">
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+        <a href="{{ url_for('productos') }}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          {{ 'Actualizar' if producto else 'Crear producto' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

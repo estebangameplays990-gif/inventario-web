@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Productos — Inventario{% endblock %}
+{% block topbar_title %}Productos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Productos</h1>
+  <a href="{{ url_for('producto_nuevo') }}" class="btn btn-primary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nuevo producto
+  </a>
+</div>
+
+<!-- Filtros -->
+<form method="get" style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar producto…"
+         style="max-width:260px; flex:1;">
+  <select name="categoria" style="max-width:200px;">
+    <option value="">Todas las categorías</option>
+    {% for c in categorias %}
+      <option value="{{ c.id }}" {% if cat_id == c.id|string %}selected{% endif %}>{{ c.nombre }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-secondary" type="submit">Filtrar</button>
+  {% if q or cat_id %}
+    <a href="{{ url_for('productos') }}" class="btn btn-secondary">Limpiar</a>
+  {% endif %}
+</form>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th><th>Categoría</th><th>Proveedor</th>
+          <th>Precio</th><th>Stock</th><th>Estado</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in productos %}
+        <tr>
+          <td>
+            <div style="font-weight:500">{{ p.nombre }}</div>
+            {% if p.descripcion %}
+              <div style="font-size:.75rem; color:var(--muted)">{{ p.descripcion }}</div>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-gray">{{ p.cat_rel.nombre if p.cat_rel else '—' }}</span></td>
+          <td class="text-muted" style="font-size:.83rem">{{ p.prov_rel.nombre if p.prov_rel else '—' }}</td>
+          <td class="text-mono">${{ "{:,.0f}".format(p.precio) }}</td>
+          <td class="text-mono">{{ p.cantidad }} <span class="text-muted" style="font-size:.75rem">/ min {{ p.stock_minimo }}</span></td>
+          <td>
+            {% if p.bajo_stock %}
+              <span class="badge badge-red">Bajo stock</span>
+            {% else %}
+              <span class="badge badge-green">OK</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-end;">
+              <button class="btn btn-secondary btn-sm"
+                      onclick="abrirMovimiento({{ p.id }}, '{{ p.nombre|replace("'","\\'")|e }}', {{ p.cantidad }})">
+                ± Ajustar
+              </button>
+              <a href="{{ url_for('producto_editar', pid=p.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+              <form method="post" action="{{ url_for('producto_eliminar', pid=p.id) }}"
+                    onsubmit="return confirm('¿Eliminar {{ p.nombre }}?')">
+                <button class="btn btn-danger btn-sm" type="submit">✕</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not productos %}
+        <tr><td colspan="7" style="text-align:center; color:var(--muted); padding:32px;">
+          No se encontraron productos.
+        </td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal movimiento -->
+<div class="modal-overlay" id="modalMov">
+  <div class="modal">
+    <div class="modal-title">Registrar movimiento</div>
+    <form method="post" id="formMov">
+      <div class="form-group">
+        <label>Producto</label>
+        <input type="text" id="movNombre" disabled style="opacity:.6">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select name="tipo" required>
+            <option value="entrada">↑ Entrada</option>
+            <option value="salida">↓ Salida</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Cantidad</label>
+          <input type="number" name="cantidad" min="1" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Nota (opcional)</label>
+        <input type="text" name="nota" placeholder="Ej: Venta mostrador…">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function abrirMovimiento(pid, nombre, stock) {
+    document.getElementById('movNombre').value = nombre + ' (stock: ' + stock + ')';
+    document.getElementById('formMov').action = '/productos/' + pid + '/movimiento';
+    document.getElementById('modalMov').classList.add('open');
+  }
+  function cerrarModal() {
+    document.getElementById('modalMov').classList.remove('open');
+  }
+  document.getElementById('modalMov').addEventListener('click', function(e){
+    if (e.target === this) cerrarModal();
+  });
+</script>
+{% endblock %}

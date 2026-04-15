@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Movimientos — Inventario{% endblock %}
+{% block topbar_title %}Historial de movimientos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Movimientos</h1>
+  <span class="badge badge-gray">Últimos {{ movimientos|length }}</span>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Nota</th></tr>
+      </thead>
+      <tbody>
+        {% for m in movimientos %}
+        <tr>
+          <td class="text-mono text-muted" style="font-size:.78rem; white-space:nowrap">
+            {{ m.fecha.strftime('%d/%m/%Y %H:%M') if m.fecha else '—' }}
+          </td>
+          <td style="font-weight:500">{{ m.producto.nombre }}</td>
+          <td>
+            {% if m.tipo == 'entrada' %}
+              <span class="badge badge-green">↑ Entrada</span>
+            {% else %}
+              <span class="badge badge-red">↓ Salida</span>
+            {% endif %}
+          </td>
+          <td class="text-mono">{{ m.cantidad }}</td>
+          <td class="text-muted" style="font-size:.83rem">{{ m.nota or '—' }}</td>
+        </tr>
+        {% endfor %}
+        {% if not movimientos %}
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Sin movimientos.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

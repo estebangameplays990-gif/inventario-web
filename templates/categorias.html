@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Categorías — Inventario{% endblock %}
+{% block topbar_title %}Categorías{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Categorías</h1>
+  <button class="btn btn-primary" onclick="document.getElementById('modalNueva').classList.add('open')">
+    + Nueva categoría
+  </button>
+</div>
+
+<div class="card" style="max-width:600px;">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Nombre</th><th>Productos</th><th></th></tr></thead>
+      <tbody>
+        {% for c in categorias %}
+        <tr>
+          <td style="font-weight:500">{{ c.nombre }}</td>
+          <td><span class="badge badge-gray">{{ c.productos|length }}</span></td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-end;">
+              <button class="btn btn-secondary btn-sm"
+                      onclick="editarCat({{ c.id }}, '{{ c.nombre|replace("'","\\'")|e }}')">
+                Editar
+              </button>
+              <form method="post" action="{{ url_for('categoria_eliminar', cid=c.id) }}"
+                    onsubmit="return confirm('¿Eliminar categoría {{ c.nombre }}?')">
+                <button class="btn btn-danger btn-sm" type="submit">✕</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not categorias %}
+          <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px">Sin categorías.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal nueva -->
+<div class="modal-overlay" id="modalNueva">
+  <div class="modal">
+    <div class="modal-title">Nueva categoría</div>
+    <form method="post" action="{{ url_for('categoria_nueva') }}">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" name="nombre" required autofocus>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="cerrar('modalNueva')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Crear</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal editar -->
+<div class="modal-overlay" id="modalEditar">
+  <div class="modal">
+    <div class="modal-title">Editar categoría</div>
+    <form method="post" id="formEditar">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" name="nombre" id="editNombre" required>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="cerrar('modalEditar')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Actualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function cerrar(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
+  });
+  function editarCat(id, nombre) {
+    document.getElementById('editNombre').value = nombre;
+    document.getElementById('formEditar').action = '/categorias/' + id + '/editar';
+    document.getElementById('modalEditar').classList.add('open');
+  }
+</script>
+{% endblock %}

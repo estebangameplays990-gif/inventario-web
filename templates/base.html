@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Inventario{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --bg2:       #171b26;
+      --bg3:       #1e2333;
+      --border:    #2a2f42;
+      --accent:    #4ade80;
+      --accent2:   #22d3ee;
+      --warn:      #fb923c;
+      --danger:    #f87171;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --sidebar-w: 230px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-brand {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-brand .logo {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-brand .logo svg { width: 20px; height: 20px; }
+    .sidebar-brand .sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+    .nav-section { padding: 12px 10px 4px; }
+    .nav-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase;
+                 letter-spacing: 1.2px; padding: 0 8px 6px; }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px; border-radius: 8px;
+      color: var(--muted); text-decoration: none; font-size: 0.875rem;
+      transition: all 0.15s;
+    }
+    .nav-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .nav-link:hover { background: var(--bg3); color: var(--text); }
+    .nav-link.active { background: rgba(74,222,128,.12); color: var(--accent); font-weight: 600; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* ── Main ── */
+    .main-wrap {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .topbar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title { font-size: 1rem; font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .badge-info {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      color: var(--muted);
+    }
+
+    .page-content { padding: 28px; flex: 1; }
+
+    /* ── Flash messages ── */
+    .flash-list { margin-bottom: 20px; }
+    .flash {
+      padding: 11px 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .flash.success { background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.3); color: var(--accent); }
+    .flash.danger  { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3); color: var(--danger); }
+    .flash.info    { background: rgba(34,211,238,.1);  border: 1px solid rgba(34,211,238,.3);  color: var(--accent2); }
+    .flash.warning { background: rgba(251,146,60,.1);  border: 1px solid rgba(251,146,60,.3);  color: var(--warn); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-title { font-size: 0.9rem; font-weight: 600; }
+    .card-body { padding: 20px; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th {
+      text-align: left; padding: 10px 14px;
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--muted); background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center;
+      font-size: 0.7rem; font-weight: 600;
+      padding: 3px 8px; border-radius: 20px;
+    }
+    .badge-green  { background: rgba(74,222,128,.15); color: var(--accent); }
+    .badge-red    { background: rgba(248,113,113,.15); color: var(--danger); }
+    .badge-orange { background: rgba(251,146,60,.15);  color: var(--warn); }
+    .badge-blue   { background: rgba(34,211,238,.15);  color: var(--accent2); }
+    .badge-gray   { background: var(--bg3); color: var(--muted); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 8px; border: none;
+      font-size: 0.875rem; font-weight: 500; cursor: pointer;
+      text-decoration: none; transition: all 0.15s; font-family: inherit;
+    }
+    .btn svg { width: 15px; height: 15px; }
+    .btn-primary   { background: var(--accent); color: #0a1a0f; }
+    .btn-primary:hover { background: #22c55e; }
+    .btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger    { background: rgba(248,113,113,.15); color: var(--danger); border: 1px solid rgba(248,113,113,.3); }
+    .btn-danger:hover { background: rgba(248,113,113,.25); }
+    .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+    .btn-icon { padding: 6px; border-radius: 6px; }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    input, select, textarea {
+      width: 100%; background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: inherit; font-size: 0.875rem;
+      padding: 9px 12px; transition: border-color 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--accent);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+    /* ── Stats ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+    }
+    .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+    .stat-value { font-size: 2rem; font-weight: 700; font-family: 'DM Mono', monospace; letter-spacing: -1px; }
+    .stat-sub { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+      z-index: 999; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; width: 420px; max-width: 95vw;
+      padding: 24px; box-shadow: 0 25px 60px rgba(0,0,0,.5);
+    }
+    .modal-title { font-size: 1rem; font-weight: 600; margin-bottom: 20px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+    /* ── Misc ── */
+    .text-mono { font-family: 'DM Mono', monospace; }
+    .text-muted { color: var(--muted); }
+    .text-accent { color: var(--accent); }
+    .text-danger { color: var(--danger); }
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mb-6 { margin-bottom: 24px; }
+    .justify-between { justify-content: space-between; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .page-header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+      Inventario
+    </div>
+    <div class="sub">Sistema de gestión</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Principal</div>
+    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+      </svg>
+      Dashboard
+    </a>
+    <a href="{{ url_for('productos') }}" class="nav-link {% if 'producto' in request.endpoint %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      </svg>
+      Productos
+    </a>
+    <a href="{{ url_for('movimientos') }}" class="nav-link {% if request.endpoint == 'movimientos' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+        <polyline points="17 6 23 6 23 12"/>
+      </svg>
+      Movimientos
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Maestros</div>
+    <a href="{{ url_for('categorias') }}" class="nav-link {% if 'categoria' in request.endpoint %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+      </svg>
+      Categorías
+    </a>
+    <a href="{{ url_for('proveedores') }}" class="nav-link {% if 'proveedor' in request.endpoint %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Proveedores
+    </a>
+  </div>
+
+  <div class="sidebar-footer">v1.0.0 &bull; Flask + SQLite</div>
+</aside>
+
+<div class="main-wrap">
+  <div class="topbar">
+    <span class="topbar-title">{% block topbar_title %}{% endblock %}</span>
+    <div class="topbar-right">
+      <span class="badge-info">Red local :5000</span>
+    </div>
+  </div>
+
+  <div class="page-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-list">
+          {% for cat, msg in messages %}
+            <div class="flash {{ cat }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Inventario{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-label">Productos</div>
+    <div class="stat-value text-accent">{{ total_productos }}</div>
+    <div class="stat-sub">registrados</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Valor del inventario</div>
+    <div class="stat-value" style="font-size:1.4rem">
+      ${{ "{:,.0f}".format(valor_total) }}
+    </div>
+    <div class="stat-sub">COP estimado</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Categorías</div>
+    <div class="stat-value">{{ total_categorias }}</div>
+    <div class="stat-sub">activas</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Proveedores</div>
+    <div class="stat-value">{{ total_proveedores }}</div>
+    <div class="stat-sub">registrados</div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom:20px;">
+
+  <!-- Bajo stock -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title" style="color:var(--warn)">
+        ⚠ Bajo Stock ({{ bajo_stock|length }})
+      </span>
+      <a href="{{ url_for('productos') }}" class="btn btn-secondary btn-sm">Ver todos</a>
+    </div>
+    <div class="table-wrap">
+      {% if bajo_stock %}
+      <table>
+        <thead><tr><th>Producto</th><th>Stock</th><th>Mínimo</th></tr></thead>
+        <tbody>
+          {% for p in bajo_stock %}
+          <tr>
+            <td>{{ p.nombre }}</td>
+            <td><span class="badge badge-red">{{ p.cantidad }}</span></td>
+            <td class="text-muted">{{ p.stock_minimo }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="card-body text-muted" style="font-size:.85rem">✓ Todo el stock está en buen nivel.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Productos por categoría -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Productos por categoría</span></div>
+    <div class="card-body">
+      {% for nombre, count in cat_stats %}
+      <div style="margin-bottom:12px">
+        <div class="flex justify-between items-center mb-4" style="margin-bottom:5px">
+          <span style="font-size:.83rem">{{ nombre }}</span>
+          <span class="text-mono" style="font-size:.78rem; color:var(--muted)">{{ count }}</span>
+        </div>
+        {% set total = cat_stats | sum(attribute=1) %}
+        {% set pct = (count / total * 100) if total > 0 else 0 %}
+        <div style="background:var(--bg3);border-radius:4px;height:6px;">
+          <div style="background:var(--accent);height:6px;border-radius:4px;width:{{ pct }}%"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Últimos movimientos -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Últimos movimientos</span>
+    <a href="{{ url_for('movimientos') }}" class="btn btn-secondary btn-sm">Ver historial</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Nota</th></tr>
+      </thead>
+      <tbody>
+        {% for m in ultimos_movs %}
+        <tr>
+          <td class="text-mono text-muted" style="font-size:.78rem">
+            {{ m.fecha.strftime('%d/%m/%Y %H:%M') if m.fecha else '—' }}
+          </td>
+          <td>{{ m.producto.nombre }}</td>
+          <td>
+            {% if m.tipo == 'entrada' %}
+              <span class="badge badge-green">↑ Entrada</span>
+            {% else %}
+              <span class="badge badge-red">↓ Salida</span>
+            {% endif %}
+          </td>
+          <td class="text-mono">{{ m.cantidad }}</td>
+          <td class="text-muted">{{ m.nota or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
