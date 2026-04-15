@@ -1,7 +1,7 @@
 """
-app.py — Inventario Web (Flask + SQLAlchemy + SQLite)
-Ejecutar: python app.py
-Acceso en red local: http://<tu-ip>:5000
+app.py — Inventario Web (Flask + SQLAlchemy + PostgreSQL)
+Ejecutar local: python app.py
+Producción:     gunicorn app:app
 """
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
@@ -14,12 +14,16 @@ from datetime import datetime
 
 # ── App & DB setup ────────────────────────────────────────────────────────────
 app = Flask(__name__)
-app.secret_key = "inventario_secret_2024"
+app.secret_key = os.environ.get("SECRET_KEY", "inventario_secret_2024")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'inventario.db')}"
+# PostgreSQL en producción (Render), SQLite en local si no hay variable de entorno
+DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{os.path.join(os.path.dirname(os.path.abspath(__file__)), 'inventario.db')}")
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# Render a veces entrega la URL con "postgres://" (viejo formato), SQLAlchemy necesita "postgresql://"
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
@@ -364,6 +368,10 @@ def proveedor_eliminar(pid):
         db.close()
     return redirect(url_for("proveedores"))
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MOVIMIENTOS
+# ══════════════════════════════════════════════════════════════════════════════
 @app.route("/movimientos")
 def movimientos():
     db = get_session()
@@ -378,5 +386,4 @@ def movimientos():
 
 # ══════════════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
-    # host="0.0.0.0" permite acceso desde otros equipos en la misma red WiFi
     app.run(host="0.0.0.0", port=5000, debug=False)
